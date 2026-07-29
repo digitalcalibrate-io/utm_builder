@@ -3,21 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UTM Builder</title>
+  <title>UTM Builder – Calibrate</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    body { background: #f5f4f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     select optgroup { font-weight: 700; }
-    input:focus, select:focus { outline: none; box-shadow: 0 0 0 2px #3b82f6; border-color: transparent !important; }
+    input:focus, select:focus { outline: none; box-shadow: 0 0 0 2px #E8501B; border-color: transparent !important; }
+    ::selection { background: #E8501B; color: white; }
+
+    .header-bar {
+      background: #1a1a1a;
+      padding: 0 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #E8501B;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .logo-sub {
+      font-size: 0.6rem;
+      font-weight: 700;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-top: 1px;
+    }
+
+    .badge-tool {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #E8501B;
+      border: 1.5px solid #E8501B;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
   </style>
 </head>
 <body>
+
+  <div class="header-bar">
+    <div>
+      <div class="logo-text">calibrate</div>
+      <div class="logo-sub">part of iO</div>
+    </div>
+    <div class="badge-tool">UTM Builder</div>
+  </div>
+
   <div id="root"></div>
+
   <script type="text/babel">
     const { useState, useMemo } = React;
+
+    const ORANGE = "#E8501B";
+    const DARK = "#1a1a1a";
+    const LIGHT_BG = "#f5f4f2";
 
     const PLATFORMS = [
       {
@@ -33,10 +88,13 @@
       { group: "Paid Social", id: "pinterest", label: "Pinterest · Paid Social", source: "pinterest", medium: "paid_social", ga4Channel: "Paid Social" },
       { group: "Paid Social", id: "snapchat", label: "Snapchat · Paid Social", source: "snapchat", medium: "paid_social", ga4Channel: "Paid Social" },
       { group: "Paid Social", id: "twitter", label: "X (Twitter) · Paid Social", source: "twitter", medium: "paid_social", ga4Channel: "Paid Social" },
+      { group: "Paid Social", id: "reddit", label: "Reddit · Paid Social", source: "reddit", medium: "paid_social", ga4Channel: "Paid Social" },
       { group: "Paid Search", id: "bing", label: "Microsoft Ads · CPC", source: "bing", medium: "cpc", ga4Channel: "Paid Search" },
       { group: "Display", id: "dv360", label: "DV360 · Display", source: "dv360", medium: "display", ga4Channel: "Display" },
       { group: "Display", id: "adform", label: "Adform · Display", source: "adform", medium: "display", ga4Channel: "Display" },
       { group: "Display", id: "adnami", label: "Adnami · Display", source: "adnami", medium: "display", ga4Channel: "Display" },
+      { group: "Display", id: "amazon_display", label: "Amazon · Display", source: "amazon", medium: "display", ga4Channel: "Display" },
+      { group: "Display", id: "targeted_display", label: "Targeted · Display", source: "targeted", medium: "display", ga4Channel: "Display" },
       { group: "Display", id: "tv2_display", label: "TV2 · Display", source: "tv2", medium: "display", ga4Channel: "Display" },
       { group: "Display", id: "tv2play_display", label: "TV2 Play · Display", source: "tv2play", medium: "display", ga4Channel: "Display" },
       { group: "Display", id: "tv2sport_display", label: "TV2 Sport · Display", source: "tv2sport", medium: "display", ga4Channel: "Display" },
@@ -56,29 +114,45 @@
       { group: "Native", id: "dba_native", label: "DBA · Native", source: "dba", medium: "native", ga4Channel: "Native Advertising", ga4Fix: "Custom channel group nødvendig: medium exactly matches native" },
       { group: "Paid Video", id: "youtube", label: "YouTube · Paid Video", source: "youtube", medium: "paid_video", ga4Channel: "Paid Video" },
       { group: "Paid Video", id: "tv2_video", label: "TV2 · Paid Video", source: "tv2", medium: "paid_video", ga4Channel: "Paid Video" },
-      { group: "Paid Video", id: "tv2play_video", label: "TV2 Play · Paid Video", source: "tv2play", medium: "paid_video", ga4Channel: "Paid Video" },
       { group: "Paid Video", id: "eb_video", label: "Ekstra Bladet · Paid Video", source: "eb", medium: "paid_video", ga4Channel: "Paid Video" },
       { group: "Paid Video", id: "showheros", label: "ShowHeroes · Paid Video", source: "showheros", medium: "paid_video", ga4Channel: "Paid Video" },
       { group: "Audio", id: "spotify", label: "Spotify · Audio", source: "spotify", medium: "audio", ga4Channel: "Audio", ga4Fix: "Custom channel group nødvendig: medium exactly matches audio" },
       { group: "Audio", id: "podcast", label: "Podcast · Audio", source: "podcast", medium: "audio", ga4Channel: "Audio", ga4Fix: "Custom channel group nødvendig: medium exactly matches audio" },
       { group: "Email", id: "klaviyo", label: "Klaviyo · Email", source: "klaviyo", medium: "email", ga4Channel: "Email" },
       { group: "Email", id: "hubspot", label: "HubSpot · Email", source: "hubspot", medium: "email", ga4Channel: "Email" },
+      { group: "Email", id: "activecampaign", label: "ActiveCampaign · Email", source: "activecampaign", medium: "email", ga4Channel: "Email" },
       { group: "Email", id: "newsletter", label: "Nyhedsbrev · Email", source: "newsletter", medium: "email", ga4Channel: "Email" },
-      { group: "Affiliates", id: "tradedoubler", label: "Tradedoubler · Affiliate", source: "tradedoubler", medium: "affiliate", ga4Channel: "Affiliates" },
-      { group: "Affiliates", id: "adtraction", label: "Adtraction · Affiliate", source: "adtraction", medium: "affiliate", ga4Channel: "Affiliates" },
-      { group: "SMS & Push", id: "sms", label: "SMS", source: "sms", medium: "sms", ga4Channel: "SMS" },
-      { group: "SMS & Push", id: "app_push", label: "App Push", source: "app", medium: "push", ga4Channel: "Mobile Push" },
       { group: "Offline", id: "qr", label: "QR-kode · Offline", source: "qr", medium: "offline", ga4Channel: "Offline", ga4Fix: "Custom channel group nødvendig: medium exactly matches offline" },
       { group: "Offline", id: "ooh", label: "OOH / DOOH · Offline", source: "ooh", medium: "offline", ga4Channel: "Offline", ga4Fix: "Custom channel group nødvendig: medium exactly matches offline" },
     ];
 
-    const s = {
-      page: { minHeight:"100vh", background:"#f8fafc", display:"flex", alignItems:"flex-start", justifyContent:"center", paddingTop:"2rem", paddingBottom:"2.5rem", paddingLeft:"1rem", paddingRight:"1rem" },
-      wrap: { width:"100%", maxWidth:"480px" },
-      card: { background:"white", borderRadius:"1rem", border:"1px solid #e2e8f0", boxShadow:"0 1px 3px rgba(0,0,0,0.05)", padding:"1.25rem", marginBottom:"0.75rem" },
-      label: { display:"block", fontSize:"0.7rem", fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:"0.375rem" },
-      input: { width:"100%", border:"1px solid #e2e8f0", borderRadius:"0.75rem", padding:"0.625rem 0.875rem", fontSize:"0.875rem", color:"#1e293b", background:"white" },
-      grid2: { display:"grid", gridTemplateColumns:"1fr 1fr", gap:"0.75rem" },
+    const inputStyle = {
+      width: "100%",
+      border: "1.5px solid #e2e0dc",
+      borderRadius: "8px",
+      padding: "0.65rem 0.9rem",
+      fontSize: "0.875rem",
+      color: DARK,
+      background: "white",
+      fontFamily: "inherit",
+    };
+
+    const labelStyle = {
+      display: "block",
+      fontSize: "0.65rem",
+      fontWeight: 800,
+      color: "#999",
+      textTransform: "uppercase",
+      letterSpacing: "0.1em",
+      marginBottom: "0.375rem",
+    };
+
+    const cardStyle = {
+      background: "white",
+      borderRadius: "12px",
+      border: "1.5px solid #e8e6e2",
+      padding: "1.25rem",
+      marginBottom: "0.75rem",
     };
 
     function UTMBuilder() {
@@ -86,6 +160,7 @@
       const [platformId, setPlatformId] = useState("meta");
       const [campaign, setCampaign] = useState("");
       const [content, setContent] = useState("");
+      const [term, setTerm] = useState("");
       const [copied, setCopied] = useState(false);
 
       const platform = PLATFORMS.find(p => p.id === platformId);
@@ -101,8 +176,9 @@
         const p = { utm_source: platform.source, utm_medium: platform.medium };
         if (campaign) p.utm_campaign = campaign;
         if (content) p.utm_content = content;
+        if (term) p.utm_term = term;
         return p;
-      }, [platform, campaign, content]);
+      }, [platform, campaign, content, term]);
 
       const allUrlParams = useMemo(() => {
         const p = { ...utmParams };
@@ -116,7 +192,7 @@
           const cleanUrl = url.trim();
           const sep = cleanUrl.includes("?") ? "&" : "?";
           const str = Object.entries(allUrlParams)
-            .map(([k, v]) => v && v.includes("{{") ? `${k}=${v}` : `${k}=${encodeURIComponent(v)}`)
+            .map(([k, v]) => v && v.includes("{{") ? `${k}=${v}` : `${k}=${encodeURIComponent(v.toLowerCase())}`)
             .join("&");
           return cleanUrl + sep + str;
         } catch { return url; }
@@ -130,26 +206,34 @@
         });
       };
 
-      const handlePlatformChange = (id) => { setPlatformId(id); setCampaign(""); setContent(""); };
+      const handlePlatformChange = (id) => { setPlatformId(id); setCampaign(""); setContent(""); setTerm(""); };
       const hasOutput = url.trim().length > 0 && platform;
 
       return (
-        <div style={s.page}>
-          <div style={s.wrap}>
+        <div style={{ minHeight: "100vh", background: LIGHT_BG, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "2rem 1rem 3rem" }}>
+          <div style={{ width: "100%", maxWidth: "500px" }}>
 
-            <div style={{ marginBottom:"1.25rem" }}>
-              <h1 style={{ fontSize:"1.25rem", fontWeight:700, color:"#0f172a", letterSpacing:"-0.02em" }}>UTM Builder</h1>
-              <p style={{ fontSize:"0.875rem", color:"#94a3b8", marginTop:"0.125rem" }}>Korrekte UTM-parametre til GA4-attribuering</p>
+            {/* Intro */}
+            <div style={{ marginBottom: "1.5rem" }}>
+              <h1 style={{ fontSize: "1.5rem", fontWeight: 900, color: DARK, letterSpacing: "-0.03em", lineHeight: 1.1 }}>
+                UTM Builder
+              </h1>
+              <p style={{ fontSize: "0.875rem", color: "#888", marginTop: "0.35rem" }}>
+                Korrekte parametre til GA4-attribuering
+              </p>
+              <div style={{ height: "3px", width: "40px", background: ORANGE, borderRadius: "2px", marginTop: "0.75rem" }} />
             </div>
 
-            <div style={s.card}>
-              <div style={{ marginBottom:"1rem" }}>
-                <label style={s.label}>Landing Page URL</label>
-                <input style={s.input} type="text" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://www.harald-nyborg.dk/haven" />
+            {/* Input card */}
+            <div style={cardStyle}>
+              <div style={{ marginBottom: "1rem" }}>
+                <label style={labelStyle}>Landing Page URL</label>
+                <input style={inputStyle} type="text" value={url} onChange={e => setUrl(e.target.value)} placeholder="https://www.example.dk/landingpage" />
               </div>
-              <div style={{ marginBottom:"1rem" }}>
-                <label style={s.label}>Platform</label>
-                <select style={s.input} value={platformId} onChange={e => handlePlatformChange(e.target.value)}>
+
+              <div style={{ marginBottom: "1rem" }}>
+                <label style={labelStyle}>Platform</label>
+                <select style={inputStyle} value={platformId} onChange={e => handlePlatformChange(e.target.value)}>
                   {Object.entries(groups).map(([group, items]) => (
                     <optgroup key={group} label={group}>
                       {items.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
@@ -157,73 +241,104 @@
                   ))}
                 </select>
               </div>
-              <div style={s.grid2}>
+
+              <div style={{ marginBottom: "0.75rem" }}>
+                <label style={labelStyle}>Kampagnenavn</label>
+                <input style={inputStyle} type="text" value={campaign} onChange={e => setCampaign(e.target.value.toLowerCase())} placeholder="e.g. sommerkampagne_2025" />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
                 <div>
-                  <label style={s.label}>Kampagnenavn</label>
-                  <input style={s.input} type="text" value={campaign} onChange={e => setCampaign(e.target.value)} placeholder="e.g. sommerkampagne" />
+                  <label style={labelStyle}>Content</label>
+                  <input style={inputStyle} type="text" value={content} onChange={e => setContent(e.target.value.toLowerCase())} placeholder="e.g. banner_v1" />
                 </div>
                 <div>
-                  <label style={s.label}>Content</label>
-                  <input style={s.input} type="text" value={content} onChange={e => setContent(e.target.value)} placeholder="e.g. banner_v1" />
+                  <label style={labelStyle}>Term</label>
+                  <input style={inputStyle} type="text" value={term} onChange={e => setTerm(e.target.value.toLowerCase())} placeholder="e.g. keyword" />
                 </div>
               </div>
             </div>
 
+            {/* Output */}
             {hasOutput && <>
-              <div style={s.card}>
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"0.625rem" }}>
-                  <span style={{ fontSize:"0.7rem", fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.08em" }}>Genereret URL</span>
-                  <button onClick={handleCopy} style={{ fontSize:"0.75rem", padding:"0.375rem 0.875rem", borderRadius:"9999px", fontWeight:700, border:"none", cursor:"pointer", background: copied ? "#d1fae5" : "#2563eb", color: copied ? "#065f46" : "white" }}>
+
+              {/* Generated URL */}
+              <div style={cardStyle}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+                  <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#999", textTransform: "uppercase", letterSpacing: "0.1em" }}>Genereret URL</span>
+                  <button onClick={handleCopy} style={{
+                    fontSize: "0.75rem", padding: "0.4rem 1rem", borderRadius: "6px", fontWeight: 700,
+                    border: "none", cursor: "pointer", transition: "all 0.15s",
+                    background: copied ? "#d1fae5" : ORANGE,
+                    color: copied ? "#065f46" : "white",
+                    letterSpacing: "0.02em"
+                  }}>
                     {copied ? "✓ Kopieret!" : "Kopiér URL"}
                   </button>
                 </div>
-                <div style={{ background:"#f8fafc", borderRadius:"0.75rem", padding:"0.75rem" }}>
-                  <p style={{ fontSize:"0.75rem", fontFamily:"monospace", wordBreak:"break-all", color:"#334155", lineHeight:1.6 }}>{finalUrl}</p>
+                <div style={{ background: LIGHT_BG, borderRadius: "8px", padding: "0.875rem", border: "1.5px solid #e8e6e2" }}>
+                  <p style={{ fontSize: "0.75rem", fontFamily: "monospace", wordBreak: "break-all", color: DARK, lineHeight: 1.7 }}>{finalUrl}</p>
                 </div>
               </div>
 
-              <div style={{ background:"white", borderRadius:"1rem", border:"1px solid #e2e8f0", boxShadow:"0 1px 3px rgba(0,0,0,0.05)", overflow:"hidden", marginBottom:"0.75rem" }}>
-                <div style={{ padding:"0.625rem 1rem", background:"#f8fafc", borderBottom:"1px solid #f1f5f9" }}>
-                  <span style={{ fontSize:"0.7rem", fontWeight:700, color:"#94a3b8", textTransform:"uppercase", letterSpacing:"0.08em" }}>Parametre</span>
+              {/* Params */}
+              <div style={{ background: "white", borderRadius: "12px", border: "1.5px solid #e8e6e2", overflow: "hidden", marginBottom: "0.75rem" }}>
+                <div style={{ padding: "0.625rem 1rem", background: DARK, borderBottom: "none" }}>
+                  <span style={{ fontSize: "0.65rem", fontWeight: 800, color: "#aaa", textTransform: "uppercase", letterSpacing: "0.1em" }}>Parametre</span>
                 </div>
                 {Object.entries(allUrlParams).map(([key, value], i) => {
                   const isDynamic = value && value.includes("{{");
                   const isExtra = platform?.extraParams && key in platform.extraParams;
                   return (
-                    <div key={key} style={{ display:"flex", alignItems:"center", padding:"0.625rem 1rem", borderBottom: i < Object.keys(allUrlParams).length - 1 ? "1px solid #f8fafc" : "none" }}>
-                      <span style={{ fontFamily:"monospace", fontSize:"0.75rem", width:"9rem", flexShrink:0, color: isExtra ? "#94a3b8" : "#3b82f6" }}>{key}</span>
-                      <span style={{ fontFamily:"monospace", fontSize:"0.75rem", color: isDynamic ? "#f59e0b" : "#1e293b" }}>{value}</span>
-                      {isDynamic && <span style={{ marginLeft:"0.5rem", fontSize:"0.7rem", background:"#fffbeb", color:"#f59e0b", border:"1px solid #fde68a", padding:"0.125rem 0.375rem", borderRadius:"0.375rem", fontWeight:700 }}>dynamisk</span>}
+                    <div key={key} style={{
+                      display: "flex", alignItems: "center", padding: "0.625rem 1rem",
+                      borderBottom: i < Object.keys(allUrlParams).length - 1 ? "1px solid #f5f4f2" : "none",
+                      background: "white"
+                    }}>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.75rem", width: "9.5rem", flexShrink: 0, color: isExtra ? "#bbb" : ORANGE, fontWeight: 600 }}>{key}</span>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.75rem", color: isDynamic ? "#f59e0b" : DARK }}>{value}</span>
+                      {isDynamic && (
+                        <span style={{ marginLeft: "0.5rem", fontSize: "0.65rem", background: "#fffbeb", color: "#f59e0b", border: "1px solid #fde68a", padding: "0.1rem 0.4rem", borderRadius: "4px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>auto</span>
+                      )}
                     </div>
                   );
                 })}
               </div>
 
-              <div style={{ ...s.card, marginBottom:0 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", marginBottom: (platform.dynamicNote || platform.ga4Fix) ? "0.625rem" : 0 }}>
-                  <span style={{ fontSize:"0.7rem", background:"#2563eb", color:"white", padding:"0.125rem 0.625rem", borderRadius:"9999px", fontWeight:700 }}>GA4</span>
-                  <span style={{ fontSize:"0.875rem", color:"#334155", fontWeight:500 }}>{platform.ga4Channel}</span>
+              {/* GA4 info */}
+              <div style={{ ...cardStyle, marginBottom: 0, borderLeft: `4px solid ${ORANGE}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: (platform.dynamicNote || platform.ga4Fix) ? "0.75rem" : 0 }}>
+                  <span style={{ fontSize: "0.65rem", background: ORANGE, color: "white", padding: "0.2rem 0.6rem", borderRadius: "4px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.06em" }}>GA4</span>
+                  <span style={{ fontSize: "0.875rem", color: DARK, fontWeight: 700 }}>{platform.ga4Channel}</span>
                 </div>
                 {platform.dynamicNote && (
-                  <div style={{ display:"flex", alignItems:"flex-start", gap:"0.625rem", background:"#fffbeb", border:"1px solid #fde68a", borderRadius:"0.75rem", padding:"0.75rem", marginBottom: platform.ga4Fix ? "0.5rem" : 0 }}>
-                    <span style={{ color:"#f59e0b", flexShrink:0 }}>⚡</span>
-                    <p style={{ fontSize:"0.75rem", color:"#92400e", lineHeight:1.5 }}>{platform.dynamicNote}</p>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.625rem", background: "#fffbeb", border: "1px solid #fde68a", borderRadius: "8px", padding: "0.75rem", marginBottom: platform.ga4Fix ? "0.5rem" : 0 }}>
+                    <span style={{ color: "#f59e0b", flexShrink: 0 }}>⚡</span>
+                    <p style={{ fontSize: "0.75rem", color: "#92400e", lineHeight: 1.5 }}>{platform.dynamicNote}</p>
                   </div>
                 )}
                 {platform.ga4Fix && (
-                  <div style={{ display:"flex", alignItems:"flex-start", gap:"0.625rem", background:"#fff7ed", border:"1px solid #fed7aa", borderRadius:"0.75rem", padding:"0.75rem" }}>
-                    <span style={{ color:"#f97316", flexShrink:0 }}>⚠</span>
-                    <p style={{ fontSize:"0.75rem", color:"#9a3412", lineHeight:1.5 }}>{platform.ga4Fix}</p>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "0.625rem", background: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "8px", padding: "0.75rem" }}>
+                    <span style={{ color: "#f97316", flexShrink: 0 }}>⚠</span>
+                    <p style={{ fontSize: "0.75rem", color: "#9a3412", lineHeight: 1.5 }}>{platform.ga4Fix}</p>
                   </div>
                 )}
               </div>
             </>}
 
             {!hasOutput && (
-              <div style={{ background:"white", borderRadius:"1rem", border:"1px dashed #e2e8f0", padding:"2rem", textAlign:"center" }}>
-                <p style={{ fontSize:"0.875rem", color:"#94a3b8" }}>Indtast en URL for at generere dit UTM-link</p>
+              <div style={{ background: "white", borderRadius: "12px", border: "1.5px dashed #e8e6e2", padding: "2.5rem", textAlign: "center" }}>
+                <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>🎯</div>
+                <p style={{ fontSize: "0.875rem", color: "#aaa", fontWeight: 500 }}>Indtast en URL for at generere dit UTM-link</p>
               </div>
             )}
+
+            {/* Footer */}
+            <div style={{ textAlign: "center", marginTop: "2rem" }}>
+              <span style={{ fontSize: "0.7rem", color: "#bbb", letterSpacing: "0.05em" }}>
+                <span style={{ color: ORANGE, fontWeight: 900 }}>calibrate</span> · part of iO
+              </span>
+            </div>
 
           </div>
         </div>
