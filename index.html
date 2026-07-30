@@ -15,12 +15,14 @@
     .logo-sub{font-size:0.58rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.12em;margin-top:1px;}
     .badge-tool{font-size:0.7rem;font-weight:700;color:#E8501B;border:1.5px solid #E8501B;padding:0.2rem 0.6rem;border-radius:4px;text-transform:uppercase;letter-spacing:0.08em;}
     .page{max-width:860px;margin:0 auto;padding:2rem 1rem 3rem;}
-    input,select,textarea{font-family:inherit;outline:none;}
+    input,select{font-family:inherit;outline:none;}
     input:focus,select:focus{box-shadow:0 0 0 2px #E8501B;border-color:transparent!important;}
     .inp{width:100%;border:1.5px solid #e2e0dc;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.82rem;color:#1a1a1a;background:white;}
-    .btn-orange{background:#E8501B;color:white;border:none;border-radius:7px;padding:0.4rem 0.875rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+    .inp.warn{border-color:#f59e0b!important;}
+    .btn-orange{background:#E8501B;color:white;border:none;border-radius:7px;padding:0.4rem 0.875rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background 0.15s;}
     .btn-orange:hover{background:#d4451a;}
-    .btn-outline{background:transparent;color:#E8501B;border:1.5px solid #E8501B;border-radius:7px;padding:0.35rem 0.875rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
+    .btn-orange:disabled{opacity:0.35;cursor:not-allowed;}
+    .btn-outline{background:transparent;color:#E8501B;border:1.5px solid #E8501B;border-radius:7px;padding:0.35rem 0.875rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s;}
     .btn-outline:disabled{opacity:0.35;cursor:not-allowed;}
     .btn-outline:hover:not(:disabled){background:#fff0e8;}
     .tab-btn{padding:0.5rem 1.25rem;font-size:0.82rem;font-weight:700;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;font-family:inherit;transition:all 0.15s;}
@@ -34,13 +36,12 @@
     .footer span{color:#E8501B;font-weight:900;}
     .empty-state{text-align:center;padding:2rem;color:#aaa;font-size:0.875rem;}
     .url-box{background:#f5f4f2;border-radius:8px;padding:0.75rem;word-break:break-all;font-family:monospace;font-size:0.75rem;color:#1a1a1a;line-height:1.6;}
-    .note-box{font-size:0.7rem;color:#aaa;margin-top:0.4rem;line-height:1.5;}
     .ga4-badge{font-size:0.65rem;background:#E8501B;color:white;padding:0.15rem 0.6rem;border-radius:4px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;}
     .warn-box{display:flex;align-items:flex-start;gap:0.5rem;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:0.65rem 0.75rem;margin-top:0.5rem;}
     .warn-box p{font-size:0.75rem;color:#92400e;line-height:1.5;}
     .info-box{display:flex;align-items:flex-start;gap:0.5rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.65rem 0.75rem;margin-top:0.5rem;}
     .info-box p{font-size:0.75rem;color:#9a3412;line-height:1.5;}
-    /* Batch table */
+    .sanitize-note{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:0.35rem 0.6rem;font-size:0.7rem;color:#92400e;margin-top:0.3rem;}
     .batch-table{width:100%;border-collapse:collapse;}
     .batch-th{padding:0.4rem 0.5rem;text-align:left;font-size:0.58rem;font-weight:800;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1.5px solid #f0ede9;white-space:nowrap;background:#f0ede9;}
     .batch-td{padding:0.4rem 0.5rem;border-bottom:1px solid #f5f4f2;vertical-align:middle;}
@@ -52,7 +53,6 @@
     .remove-btn:hover{color:#dc2626;}
     .add-row-btn{width:100%;padding:0.75rem;background:transparent;color:#E8501B;border:2px dashed #E8501B;border-radius:10px;font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:0.75rem;}
     .add-row-btn:hover{background:#fff0e8;}
-    .copied-flash{background:#dcfce7;color:#16a34a;border-radius:6px;padding:0.5rem 0.75rem;font-size:0.75rem;font-weight:700;text-align:center;}
     .sheets-note{background:#fff0e8;border:1px solid #fdd0b8;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.72rem;color:#9a3412;margin-top:0.5rem;}
   </style>
 </head>
@@ -65,6 +65,22 @@
 <script type="text/babel">
 const { useState, useMemo } = React;
 const O = "#E8501B";
+
+// ─── SANITIZE ────────────────────────────────────────────────────────────────
+// Never æøå or spaces in UTM params – replace with URL-safe equivalents
+function sanitize(str) {
+  return (str || "")
+    .toLowerCase()
+    .replace(/æ/g, "ae")
+    .replace(/ø/g, "oe")
+    .replace(/å/g, "aa")
+    .replace(/\s+/g, "_")
+    .replace(/[^a-z0-9_\-.]/g, "");
+}
+
+function hasInvalidChars(str) {
+  return /[æøåÆØÅ\s]/.test(str);
+}
 
 const PLATFORMS = [
   {group:"Paid Social",id:"meta",label:"Meta · Paid Social",source:"meta",medium:"paid_social",extraParams:{platform:"{{site_source_name}}",placement:"{{placement}}"},dynamicNote:"Indsæt URL'en i Meta's 'URL Parameters' felt – Meta udfylder platform og placement automatisk per annonce",ga4Channel:"Paid Social",ga4Fix:"Tilføj 'meta' til Paid Social regel i GA4: source matches regex ^(fb|ig|an|facebook|instagram|meta)$"},
@@ -120,11 +136,13 @@ function buildUrl(baseUrl, platform, campaign, content, term) {
     const clean = baseUrl.trim();
     const sep = clean.includes("?")?"&":"?";
     const params = {utm_source:platform.source, utm_medium:platform.medium};
-    if (campaign) params.utm_campaign = campaign;
-    if (content)  params.utm_content  = content;
-    if (term)     params.utm_term     = term;
+    if (campaign) params.utm_campaign = sanitize(campaign);
+    if (content)  params.utm_content  = sanitize(content);
+    if (term)     params.utm_term     = sanitize(term);
     if (platform.extraParams) Object.assign(params, platform.extraParams);
-    const str = Object.entries(params).map(([k,v])=>v&&v.includes("{{")?`${k}=${v}`:`${k}=${encodeURIComponent(v.toLowerCase())}`).join("&");
+    const str = Object.entries(params)
+      .map(([k,v]) => v && v.includes("{{") ? `${k}=${v}` : `${k}=${encodeURIComponent(v)}`)
+      .join("&");
     return clean + sep + str;
   } catch { return baseUrl; }
 }
@@ -138,6 +156,28 @@ function PlatformSelect({value, onChange, style}) {
         </optgroup>
       ))}
     </select>
+  );
+}
+
+// Field with sanitize-on-change + warning if invalid chars detected
+function SanitizedInput({value, onChange, placeholder, style, className}) {
+  const warn = hasInvalidChars(value);
+  return (
+    <div>
+      <input
+        className={`inp${warn?" warn":""}${className?" "+className:""}`}
+        type="text"
+        value={value}
+        style={style}
+        placeholder={placeholder}
+        onChange={e => onChange(sanitize(e.target.value))}
+      />
+      {warn && (
+        <div className="sanitize-note">
+          æ→ae · ø→oe · å→aa · mellemrum→_ (URL-tegn erstattes automatisk)
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -158,9 +198,9 @@ function SingleMode() {
   const utmParams = useMemo(()=>{
     if(!platform) return {};
     const p={utm_source:platform.source,utm_medium:platform.medium};
-    if(campaign) p.utm_campaign=campaign;
-    if(content)  p.utm_content=content;
-    if(term)     p.utm_term=term;
+    if(campaign) p.utm_campaign=sanitize(campaign);
+    if(content)  p.utm_content=sanitize(content);
+    if(term)     p.utm_term=sanitize(term);
     if(platform.extraParams) Object.assign(p,platform.extraParams);
     return p;
   },[platform,campaign,content,term]);
@@ -174,7 +214,7 @@ function SingleMode() {
 
   const copyForSheet=()=>{
     if(!finalUrl)return;
-    const row=[url.trim(),platform.label,platform.source,platform.medium,campaign,content,term,finalUrl].join("\t");
+    const row=[url.trim(),platform.label,platform.source,platform.medium,sanitize(campaign),sanitize(content),sanitize(term),finalUrl].join("\t");
     navigator.clipboard.writeText(row).then(()=>{setCopiedSheet(true);setTimeout(()=>setCopiedSheet(false),2500);});
   };
 
@@ -192,16 +232,16 @@ function SingleMode() {
           </div>
           <div style={{marginBottom:"0.75rem"}}>
             <label className="label">Kampagnenavn</label>
-            <input className="inp" type="text" value={campaign} onChange={e=>setCampaign(e.target.value.toLowerCase())} placeholder="e.g. sommerkampagne_2025"/>
+            <SanitizedInput value={campaign} onChange={setCampaign} placeholder="e.g. sommerkampagne_2025"/>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.75rem"}}>
             <div>
               <label className="label">Content</label>
-              <input className="inp" type="text" value={content} onChange={e=>setContent(e.target.value.toLowerCase())} placeholder="e.g. banner_v1"/>
+              <SanitizedInput value={content} onChange={setContent} placeholder="e.g. banner_v1"/>
             </div>
             <div>
               <label className="label">Term</label>
-              <input className="inp" type="text" value={term} onChange={e=>setTerm(e.target.value.toLowerCase())} placeholder="e.g. keyword"/>
+              <SanitizedInput value={term} onChange={setTerm} placeholder="e.g. keyword"/>
             </div>
           </div>
         </div>
@@ -212,10 +252,11 @@ function SingleMode() {
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"0.625rem",flexWrap:"wrap",gap:"0.5rem"}}>
             <span style={{fontSize:"0.65rem",fontWeight:800,color:"#aaa",textTransform:"uppercase",letterSpacing:"0.08em"}}>Genereret URL</span>
             <div style={{display:"flex",gap:"0.4rem"}}>
-              <button className="btn-outline" onClick={copyForSheet} style={{fontSize:"0.72rem"}}>
+              <button className="btn-outline" onClick={copyForSheet}>
                 {copiedSheet?"✓ Klar til Sheets!":"📋 Kopiér til Sheets"}
               </button>
-              <button className="btn-orange" onClick={copyUrl} style={{background:copiedUrl?"#dcfce7":O,color:copiedUrl?"#16a34a":"white",fontSize:"0.72rem"}}>
+              <button className="btn-orange" onClick={copyUrl}
+                style={{background:copiedUrl?"#dcfce7":O,color:copiedUrl?"#16a34a":"white"}}>
                 {copiedUrl?"✓ Kopieret!":"Kopiér URL"}
               </button>
             </div>
@@ -228,7 +269,7 @@ function SingleMode() {
           <div style={{padding:"0.5rem 1rem",background:"#f5f4f2",borderBottom:"1px solid #f0ede9"}}>
             <span style={{fontSize:"0.65rem",fontWeight:800,color:"#aaa",textTransform:"uppercase",letterSpacing:"0.08em"}}>Parametre</span>
           </div>
-          {Object.entries(utmParams).map(([key,value],i)=>{
+          {Object.entries(utmParams).map(([key,value])=>{
             const isDynamic=value&&value.includes("{{");
             const isExtra=platform?.extraParams&&key in platform.extraParams;
             return (
@@ -262,7 +303,7 @@ function SingleMode() {
 
 // ─── BATCH MODE ───────────────────────────────────────────────────────────────
 let batchId=1;
-function newBatchRow(platformId="meta"){return {id:batchId++,platformId,url:"",campaign:"",content:"",term:""};}
+function newBatchRow(pid="meta"){return {id:batchId++,platformId:pid,url:"",campaign:"",content:"",term:""};}
 
 function BatchMode() {
   const [rows,       setRows]       = useState([newBatchRow("meta"),newBatchRow("linkedin"),newBatchRow("tiktok")]);
@@ -284,7 +325,7 @@ function BatchMode() {
     const header="Landing Page URL\tPlatform\tutm_source\tutm_medium\tutm_campaign\tutm_content\tutm_term\tGenereret URL";
     const dataRows=builtRows.map(r=>{
       if(!r.url||!r.platform)return null;
-      return [r.url,r.platform.label,r.platform.source,r.platform.medium,r.campaign,r.content,r.term,r.finalUrl].join("\t");
+      return [r.url,r.platform.label,r.platform.source,r.platform.medium,sanitize(r.campaign),sanitize(r.content),sanitize(r.term),r.finalUrl].join("\t");
     }).filter(Boolean);
     navigator.clipboard.writeText([header,...dataRows].join("\n")).then(()=>{setCopiedAll(true);setTimeout(()=>setCopiedAll(false),2500);});
   };
@@ -293,7 +334,7 @@ function BatchMode() {
     const header="Landing Page URL,Platform,utm_source,utm_medium,utm_campaign,utm_content,utm_term,Genereret URL";
     const dataRows=builtRows.map(r=>{
       if(!r.url||!r.platform)return null;
-      return [r.url,r.platform.label,r.platform.source,r.platform.medium,r.campaign,r.content,r.term,r.finalUrl]
+      return [r.url,r.platform.label,r.platform.source,r.platform.medium,sanitize(r.campaign),sanitize(r.content),sanitize(r.term),r.finalUrl]
         .map(v=>`"${(v||"").replace(/"/g,'""')}"`)
         .join(",");
     }).filter(Boolean);
@@ -338,7 +379,7 @@ function BatchMode() {
               </tr>
             </thead>
             <tbody>
-              {builtRows.map((row,idx)=>(
+              {builtRows.map(row=>(
                 <React.Fragment key={row.id}>
                   <tr className="batch-tr">
                     <td className="batch-td">
@@ -351,18 +392,18 @@ function BatchMode() {
                         style={{fontSize:"0.75rem",padding:"0.38rem 0.55rem"}}/>
                     </td>
                     <td className="batch-td">
-                      <input className="inp" type="text" value={row.campaign}
-                        onChange={e=>updRow(row.id,"campaign",e.target.value.toLowerCase())}
+                      <input className={`inp${hasInvalidChars(row.campaign)?" warn":""}`} type="text" value={row.campaign}
+                        onChange={e=>updRow(row.id,"campaign",sanitize(e.target.value))}
                         placeholder="sommerkampagne" style={{fontSize:"0.78rem",padding:"0.38rem 0.55rem"}}/>
                     </td>
                     <td className="batch-td">
-                      <input className="inp" type="text" value={row.content}
-                        onChange={e=>updRow(row.id,"content",e.target.value.toLowerCase())}
+                      <input className={`inp${hasInvalidChars(row.content)?" warn":""}`} type="text" value={row.content}
+                        onChange={e=>updRow(row.id,"content",sanitize(e.target.value))}
                         placeholder="banner_v1" style={{fontSize:"0.78rem",padding:"0.38rem 0.55rem"}}/>
                     </td>
                     <td className="batch-td">
-                      <input className="inp" type="text" value={row.term}
-                        onChange={e=>updRow(row.id,"term",e.target.value.toLowerCase())}
+                      <input className={`inp${hasInvalidChars(row.term)?" warn":""}`} type="text" value={row.term}
+                        onChange={e=>updRow(row.id,"term",sanitize(e.target.value))}
                         placeholder="keyword" style={{fontSize:"0.78rem",padding:"0.38rem 0.55rem"}}/>
                     </td>
                     <td className="batch-td">
@@ -419,12 +460,18 @@ function App() {
           <div style={{padding:"0.65rem 1.25rem",background:"#fafaf9"}}>
             {tab==="single"
               ?<p style={{fontSize:"0.78rem",color:"#666"}}>Generer ét UTM-link – kopier URL'en direkte eller som række til Sheets/Excel.</p>
-              :<p style={{fontSize:"0.78rem",color:"#666"}}>Byg en hel kampagne på tværs af platforme. Download som CSV eller kopier alle rækker direkte til Sheets/Excel.</p>
+              :<p style={{fontSize:"0.78rem",color:"#666"}}>Byg en hel kampagne på tværs af platforme. Download som CSV eller kopier alle rækker til Sheets/Excel.</p>
             }
           </div>
         </div>
 
         {tab==="single"?<SingleMode/>:<BatchMode/>}
+
+        <div style={{background:"#f0f8ff",border:"1px solid #bde0fe",borderRadius:"8px",padding:"0.5rem 0.875rem",marginTop:"0.75rem"}}>
+          <p style={{fontSize:"0.72rem",color:"#1a5276",lineHeight:1.5}}>
+            <strong>URL-sanitering:</strong> æ→ae · ø→oe · å→aa · mellemrum→underscore · ugyldige tegn fjernes automatisk. UTM-parametre må kun indeholde ASCII-tegn.
+          </p>
+        </div>
 
         <div className="footer"><span>calibrate</span> · part of iO</div>
       </div>
