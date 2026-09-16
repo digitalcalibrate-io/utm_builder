@@ -1,635 +1,242 @@
 <!DOCTYPE html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8"/>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>UTM Builder – Calibrate</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+  <title>UTM Builder – Harald Nyborg</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    body{background:#f5f4f2;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#1a1a1a;}
-    .header-bar{background:#1a1a1a;padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
-    .logo-text{font-size:1.4rem;font-weight:900;color:#E8501B;letter-spacing:-0.04em;line-height:1;}
-    .logo-sub{font-size:0.58rem;font-weight:700;color:#666;text-transform:uppercase;letter-spacing:0.12em;margin-top:1px;}
-    .badge-tool{font-size:0.7rem;font-weight:700;color:#E8501B;border:1.5px solid #E8501B;padding:0.2rem 0.6rem;border-radius:4px;text-transform:uppercase;letter-spacing:0.08em;}
-    .page{max-width:900px;margin:0 auto;padding:2rem 1rem 3rem;}
-    input,select,textarea{font-family:inherit;outline:none;}
-    input:focus,select:focus,textarea:focus{box-shadow:0 0 0 2px #E8501B;border-color:transparent!important;}
-    .inp{width:100%;border:1.5px solid #e2e0dc;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.82rem;color:#1a1a1a;background:white;}
-    .inp.warn{border-color:#f59e0b!important;}
-    .btn-orange{background:#E8501B;color:white;border:none;border-radius:7px;padding:0.4rem 0.875rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:background 0.15s;}
-    .btn-orange:hover{background:#d4451a;}
-    .btn-orange:disabled{opacity:0.35;cursor:not-allowed;}
-    .btn-outline{background:transparent;color:#E8501B;border:1.5px solid #E8501B;border-radius:7px;padding:0.35rem 0.875rem;font-size:0.78rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s;}
-    .btn-outline:disabled{opacity:0.35;cursor:not-allowed;}
-    .btn-outline:hover:not(:disabled){background:#fff0e8;}
-    .btn-ghost{background:transparent;color:#888;border:1.5px solid #e8e6e2;border-radius:7px;padding:0.35rem 0.75rem;font-size:0.75rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
-    .btn-ghost:hover{border-color:#E8501B;color:#E8501B;}
-    .btn-danger{background:transparent;color:#dc2626;border:1.5px solid #fca5a5;border-radius:7px;padding:0.35rem 0.6rem;font-size:0.72rem;font-weight:700;cursor:pointer;font-family:inherit;}
-    .btn-danger:hover{background:#fee2e2;}
-    .tab-btn{padding:0.5rem 1.25rem;font-size:0.82rem;font-weight:700;border:none;cursor:pointer;background:transparent;border-bottom:2px solid transparent;font-family:inherit;transition:all 0.15s;}
-    .tab-btn.active{color:#E8501B;border-bottom-color:#E8501B;}
-    .tab-btn.inactive{color:#aaa;}
-    .card{background:white;border-radius:12px;border:1.5px solid #e8e6e2;overflow:hidden;margin-bottom:0.75rem;}
-    .label{display:block;font-size:0.62rem;font-weight:800;color:#aaa;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.3rem;}
-    .param-row{display:flex;align-items:center;padding:0.5rem 1rem;border-bottom:1px solid #f5f4f2;}
-    .param-row:last-child{border-bottom:none;}
-    .footer{text-align:center;margin-top:2rem;font-size:0.7rem;color:#bbb;}
-    .footer span{color:#E8501B;font-weight:900;}
-    .empty-state{text-align:center;padding:2rem;color:#aaa;font-size:0.875rem;}
-    .url-box{background:#f5f4f2;border-radius:8px;padding:0.75rem;word-break:break-all;font-family:monospace;font-size:0.75rem;color:#1a1a1a;line-height:1.6;}
-    .ga4-badge{font-size:0.65rem;background:#E8501B;color:white;padding:0.15rem 0.6rem;border-radius:4px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;}
-    .warn-box{display:flex;align-items:flex-start;gap:0.5rem;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:0.65rem 0.75rem;margin-top:0.5rem;}
-    .warn-box p{font-size:0.75rem;color:#92400e;line-height:1.5;}
-    .info-box{display:flex;align-items:flex-start;gap:0.5rem;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:0.65rem 0.75rem;margin-top:0.5rem;}
-    .info-box p{font-size:0.75rem;color:#9a3412;line-height:1.5;}
-    .sanitize-note{background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:0.3rem 0.6rem;font-size:0.7rem;color:#92400e;margin-top:0.3rem;}
-    .batch-table{width:100%;border-collapse:collapse;}
-    .batch-th{padding:0.4rem 0.5rem;text-align:left;font-size:0.58rem;font-weight:800;color:#aaa;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1.5px solid #f0ede9;white-space:nowrap;background:#f0ede9;}
-    .batch-td{padding:0.4rem 0.5rem;border-bottom:1px solid #f5f4f2;vertical-align:middle;}
-    .batch-tr:last-child .batch-td{border-bottom:none;}
-    .batch-tr:hover .batch-td{background:#fafaf9;}
-    .url-preview{font-family:monospace;font-size:0.68rem;color:#555;word-break:break-all;line-height:1.4;}
-    .url-preview.empty{color:#bbb;}
-    .remove-btn{background:none;border:none;cursor:pointer;color:#ccc;font-size:1.1rem;line-height:1;padding:0.2rem 0.3rem;}
-    .remove-btn:hover{color:#dc2626;}
-    .add-row-btn{width:100%;padding:0.75rem;background:transparent;color:#E8501B;border:2px dashed #E8501B;border-radius:10px;font-size:0.85rem;font-weight:800;cursor:pointer;font-family:inherit;margin-top:0.75rem;}
-    .add-row-btn:hover{background:#fff0e8;}
-    .sheets-note{background:#fff0e8;border:1px solid #fdd0b8;border-radius:8px;padding:0.55rem 0.75rem;font-size:0.72rem;color:#9a3412;margin-top:0.5rem;}
-    .tpl-card{background:white;border-radius:12px;overflow:hidden;margin-bottom:0.75rem;border:1.5px solid #e8e6e2;transition:border-color 0.15s,box-shadow 0.15s;}
-    .tpl-card:hover{border-color:#E8501B44;box-shadow:0 4px 16px rgba(232,80,27,0.08);}
-    .tpl-card.builtin{border-left:4px solid #E8501B;}
-    .tpl-card.personal{border-left:4px solid #22c55e;}
-    .tpl-header{padding:0.875rem 1.25rem;display:flex;align-items:flex-start;justify-content:space-between;gap:0.75rem;}
-    .tpl-name{font-size:0.9rem;font-weight:800;color:#1a1a1a;}
-    .tpl-meta{font-size:0.72rem;color:#888;margin-top:2px;}
-    .tpl-rows-preview{padding:0 1.25rem 0.875rem;}
-    .tpl-row-chip{display:inline-flex;align-items:center;gap:0.3rem;background:#f5f4f2;border-radius:4px;padding:0.15rem 0.45rem;font-size:0.68rem;font-family:monospace;color:#555;margin:0.15rem;}
-    .tpl-actions{display:flex;gap:0.4rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
-    .new-tpl-form{background:#fafaf9;border-radius:12px;border:1.5px dashed #e8e6e2;padding:1.25rem;margin-bottom:0.75rem;}
-    .tpl-row-editor{display:grid;grid-template-columns:2fr 1.2fr 1fr 1fr 1fr 28px;gap:0.4rem;align-items:center;padding:0.35rem 0.5rem;}
-    .badge-builtin{font-size:0.58rem;font-weight:800;background:#fff0e8;color:#E8501B;padding:0.1rem 0.4rem;border-radius:3px;text-transform:uppercase;letter-spacing:0.05em;}
-    .badge-personal{font-size:0.58rem;font-weight:800;background:#dcfce7;color:#16a34a;padding:0.1rem 0.4rem;border-radius:3px;text-transform:uppercase;letter-spacing:0.05em;}
-    .badge-count{font-size:0.62rem;font-weight:700;background:#E8501B22;color:#E8501B;padding:0.1rem 0.4rem;border-radius:3px;}
-    .section-divider{display:flex;align-items:center;gap:0.75rem;margin:1.25rem 0 0.75rem;}
-    .section-divider-line{flex:1;height:1px;background:#e8e6e2;}
-    .section-divider-label{font-size:0.62rem;font-weight:800;color:#bbb;text-transform:uppercase;letter-spacing:0.1em;white-space:nowrap;}
-    .success-toast{background:#dcfce7;color:#16a34a;border-radius:8px;padding:0.6rem 0.875rem;margin-bottom:0.75rem;font-size:0.78rem;font-weight:700;}
-  </style>
-</head>
-<body>
-<div class="header-bar">
-  <div><div class="logo-text">calibrate</div><div class="logo-sub">part of iO</div></div>
-  <div class="badge-tool">UTM Builder</div>
-</div>
-<div id="root"></div>
-<script type="text/babel">
-const { useState, useMemo, useEffect } = React;
-const O = "#E8501B";
-const LS_KEY = "utm_builder_templates";
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-function sanitize(str){
-  return(str||"").toLowerCase()
-    .replace(/æ/g,"ae").replace(/ø/g,"oe").replace(/å/g,"aa")
-    .replace(/\s+/g,"_").replace(/[^a-z0-9_\-.]/g,"");
-}
-function hasInvalidChars(str){return /[æøåÆØÅ\s]/.test(str);}
-
-const PLATFORMS=[  {group:"Paid Social",id:"meta",label:"Meta · Paid Social",source:"meta",medium:"paid_social",extraParams:{platform:"{{site_source_name}}",placement:"{{placement}}"},dynamicNote:"Indsæt URL'en i Meta's 'URL Parameters' felt – Meta udfylder platform og placement automatisk per annonce",ga4Channel:"Paid Social",ga4Fix:"Tilføj 'meta' til Paid Social regel i GA4: source matches regex ^(fb|ig|an|facebook|instagram|meta)$"},  {group:"Paid Social",id:"linkedin",label:"LinkedIn · Paid Social",source:"linkedin",medium:"paid_social",ga4Channel:"Paid Social"},  {group:"Paid Social",id:"tiktok",label:"TikTok · Paid Social",source:"tiktok",medium:"paid_social",ga4Channel:"Paid Social"},  {group:"Paid Social",id:"pinterest",label:"Pinterest · Paid Social",source:"pinterest",medium:"paid_social",ga4Channel:"Paid Social"},  {group:"Paid Social",id:"snapchat",label:"Snapchat · Paid Social",source:"snapchat",medium:"paid_social",ga4Channel:"Paid Social"},  {group:"Paid Social",id:"twitter",label:"X (Twitter) · Paid Social",source:"twitter",medium:"paid_social",ga4Channel:"Paid Social"},  {group:"Paid Social",id:"reddit",label:"Reddit · Paid Social",source:"reddit",medium:"paid_social",ga4Channel:"Paid Social"},  {group:"Paid Search",id:"bing",label:"Microsoft Ads · CPC",source:"bing",medium:"cpc",ga4Channel:"Paid Search"},  {group:"Display",id:"dv360",label:"DV360 · Display",source:"dv360",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"adform",label:"Adform · Display",source:"adform",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"adnami",label:"Adnami · Display",source:"adnami",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"amazon_display",label:"Amazon · Display",source:"amazon",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"targeted_display",label:"Targeted · Display",source:"targeted",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"tv2_display",label:"TV2 · Display",source:"tv2",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"tv2play_display",label:"TV2 Play · Display",source:"tv2play",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"eb_display",label:"Ekstra Bladet · Display",source:"eb",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"bt_display",label:"BT · Display",source:"bt",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"politiken_display",label:"Politiken · Display",source:"politiken",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"berlingske_display",label:"Berlingske · Display",source:"berlingske",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"dba_display",label:"DBA · Display",source:"dba",medium:"display",ga4Channel:"Display"},  {group:"Display",id:"step_network",label:"STEP Network · Display",source:"step_network",medium:"display",ga4Channel:"Display"},  {group:"Native",id:"strossle",label:"Strossle · Native",source:"strossle",medium:"native",ga4Channel:"Native Advertising",ga4Fix:"Custom channel group nødvendig: medium exactly matches native"},  {group:"Native",id:"concept",label:"Concept X · Native",source:"concept",medium:"native",ga4Channel:"Native Advertising",ga4Fix:"Custom channel group nødvendig: medium exactly matches native"},  {group:"Native",id:"tv2_native",label:"TV2 · Native",source:"tv2",medium:"native",ga4Channel:"Native Advertising",ga4Fix:"Custom channel group nødvendig: medium exactly matches native"},  {group:"Native",id:"tv2play_native",label:"TV2 Play · Native",source:"tv2play",medium:"native",ga4Channel:"Native Advertising",ga4Fix:"Custom channel group nødvendig: medium exactly matches native"},  {group:"Native",id:"eb_native",label:"Ekstra Bladet · Native",source:"eb",medium:"native",ga4Channel:"Native Advertising",ga4Fix:"Custom channel group nødvendig: medium exactly matches native"},  {group:"Native",id:"bt_native",label:"BT · Native",source:"bt",medium:"native",ga4Channel:"Native Advertising",ga4Fix:"Custom channel group nødvendig: medium exactly matches native"},  {group:"Native",id:"dba_native",label:"DBA · Native",source:"dba",medium:"native",ga4Channel:"Native Advertising",ga4Fix:"Custom channel group nødvendig: medium exactly matches native"},  {group:"Paid Video",id:"youtube",label:"YouTube · Paid Video",source:"youtube",medium:"paid_video",ga4Channel:"Paid Video"},  {group:"Paid Video",id:"eb_video",label:"Ekstra Bladet · Paid Video",source:"eb",medium:"paid_video",ga4Channel:"Paid Video"},  {group:"Paid Video",id:"showheros",label:"ShowHeroes · Paid Video",source:"showheros",medium:"paid_video",ga4Channel:"Paid Video"},  {group:"Audio",id:"spotify",label:"Spotify · Audio",source:"spotify",medium:"audio",ga4Channel:"Audio",ga4Fix:"Custom channel group nødvendig: medium exactly matches audio"},  {group:"Audio",id:"podcast",label:"Podcast · Audio",source:"podcast",medium:"audio",ga4Channel:"Audio",ga4Fix:"Custom channel group nødvendig: medium exactly matches audio"},  {group:"Email",id:"klaviyo",label:"Klaviyo · Email",source:"klaviyo",medium:"email",ga4Channel:"Email"},  {group:"Email",id:"hubspot",label:"HubSpot · Email",source:"hubspot",medium:"email",ga4Channel:"Email"},  {group:"Email",id:"activecampaign",label:"ActiveCampaign · Email",source:"activecampaign",medium:"email",ga4Channel:"Email"},  {group:"Email",id:"newsletter",label:"Nyhedsbrev · Email",source:"newsletter",medium:"email",ga4Channel:"Email"},  {group:"AI",id:"openai",label:"OpenAI · AI",source:"openai",medium:"ai",ga4Channel:"Unassigned",ga4Fix:"Custom channel group nødvendig i GA4: source exactly matches openai AND medium exactly matches ai"},  {group:"Offline",id:"qr",label:"QR-kode · Offline",source:"qr",medium:"offline",ga4Channel:"Offline",ga4Fix:"Custom channel group nødvendig: medium exactly matches offline"},  {group:"Offline",id:"ooh",label:"OOH / DOOH · Offline",source:"ooh",medium:"offline",ga4Channel:"Offline",ga4Fix:"Custom channel group nødvendig: medium exactly matches offline"},];
-const GROUPS={};
-PLATFORMS.forEach(p=>{if(!GROUPS[p.group])GROUPS[p.group]=[];GROUPS[p.group].push(p);});
-
-// ─── BUILT-IN TEMPLATES ───────────────────────────────────────────────────────
-const BUILTIN_TEMPLATES=[  {    id:"hn_uge_katalog",    name:"Harald Nyborg · Uge-katalog",    description:"Standard mediemix til ugekatalog-kampagner",    builtin:true,    rows:[      {platformId:"concept",      url:"https://publikationer.harald-nyborg.dk/uge/",campaign:"uge_katalog",content:"display",term:""},      {platformId:"eb_display",   url:"https://publikationer.harald-nyborg.dk/uge/",campaign:"uge_katalog",content:"wallpaper",term:""},      {platformId:"tv2_display",  url:"https://publikationer.harald-nyborg.dk/uge/",campaign:"uge_katalog",content:"pausead",term:""},      {platformId:"dba_display",  url:"https://publikationer.harald-nyborg.dk/uge/",campaign:"uge_katalog",content:"wallpaper",term:""},      {platformId:"showheros",    url:"https://publikationer.harald-nyborg.dk/uge/",campaign:"uge_katalog",content:"wallpaper",term:""},      {platformId:"dv360",        url:"https://publikationer.herald-nyborg.dk/uge/",campaign:"uge_katalog",content:"",term:""},      {platformId:"adform",       url:"https://publikationer.harald-nyborg.dk/uge/",campaign:"uge_katalog",content:"uge",term:""},      {platformId:"meta",         url:"https://publikationer.harald-nyborg.dk/uge/",campaign:"uge_katalog",content:"",term:""},    ]
-  },
-];
-
-function buildUrl(baseUrl,platform,campaign,content,term){
-  if(!baseUrl||!platform)return"";
-  try{
-    const clean=baseUrl.trim();
-    const sep=clean.includes("?")?"&":"?";
-    const params={utm_source:platform.source,utm_medium:platform.medium};
-    if(campaign)params.utm_campaign=sanitize(campaign);
-    if(content) params.utm_content=sanitize(content);
-    if(term)    params.utm_term=sanitize(term);
-    if(platform.extraParams)Object.assign(params,platform.extraParams);
-    const str=Object.entries(params).map(([k,v])=>v&&v.includes("{{")?`${k}=${v}`:`${k}=${encodeURIComponent(v)}`).join("&");
-    return clean+sep+str;
-  }catch{return baseUrl;}
-}
-
-function PlatformSelect({value,onChange,style}){
-  return(
-    <select className="inp" value={value} onChange={e=>onChange(e.target.value)} style={style}>
-      {Object.entries(GROUPS).map(([group,items])=>(
-        <optgroup key={group} label={group}>
-          {items.map(p=><option key={p.id} value={p.id}>{p.label}</option>)}
-        </optgroup>
-      ))}
-    </select>
-  );
-}
-
-function SanitizedInput({value,onChange,placeholder,style}){
-  const warn=hasInvalidChars(value);
-  return(
-    <div>
-      <input className={`inp${warn?" warn":""}`} type="text" value={value}
-        style={style} placeholder={placeholder}
-        onChange={e=>onChange(sanitize(e.target.value))}/>
-      {warn&&<div className="sanitize-note">æ→ae · ø→oe · å→aa · mellemrum→_</div>}
-    </div>
-  );
-}
-
-function loadPersonalTemplates(){
-  try{const raw=localStorage.getItem(LS_KEY);return raw?JSON.parse(raw):[];}catch{return[];}
-}
-function savePersonalTemplates(t){
-  try{localStorage.setItem(LS_KEY,JSON.stringify(t));}catch{}
-}
-
-function rowToTabStr(url,platform,campaign,content,term,finalUrl){
-  return[url,platform.source,platform.medium,sanitize(campaign),sanitize(content),sanitize(term),finalUrl].join("\t");
-}
-
-// ─── SINGLE MODE ─────────────────────────────────────────────────────────────
-function SingleMode(){
-  const [url,setUrl]=useState("");
-  const [platformId,setPlatformId]=useState("meta");
-  const [campaign,setCampaign]=useState("");
-  const [content,setContent]=useState("");
-  const [term,setTerm]=useState("");
-  const [copiedUrl,setCopiedUrl]=useState(false);
-  const [copiedSheet,setCopiedSheet]=useState(false);
-
-  const platform=PLATFORMS.find(p=>p.id===platformId);
-  const finalUrl=useMemo(()=>buildUrl(url,platform,campaign,content,term),[url,platform,campaign,content,term]);
-  const hasOutput=url.trim().length>0&&platform;
-
-  const utmParams=useMemo(()=>{
-    if(!platform)return{};
-    const p={utm_source:platform.source,utm_medium:platform.medium};
-    if(campaign)p.utm_campaign=sanitize(campaign);
-    if(content) p.utm_content=sanitize(content);
-    if(term)    p.utm_term=sanitize(term);
-    if(platform.extraParams)Object.assign(p,platform.extraParams);
-    return p;
-  },[platform,campaign,content,term]);
-
-  const copyUrl=()=>{
-    if(!finalUrl)return;
-    navigator.clipboard.writeText(finalUrl).then(()=>{setCopiedUrl(true);setTimeout(()=>setCopiedUrl(false),2000);});
-  };
-
-  const copyForSheet=()=>{
-    if(!finalUrl)return;
-    const row=rowToTabStr(url.trim(),platform,campaign,content,term,finalUrl);
-    navigator.clipboard.writeText(row).then(()=>{setCopiedSheet(true);setTimeout(()=>setCopiedSheet(false),2500);});
-  };
-
-  return(
-    <div>
-      <div className="card">
-        <div style={{padding:"1.25rem"}}>
-          <div style={{marginBottom:"1rem"}}>
-            <label className="label">Landing Page URL</label>
-            <input className="inp" type="text" value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://www.harold-nyborg.dk/haven"/>
-          </div>
-          <div style={{marginBottom:"1rem"}}>
-            <label className="label">Platform</label>
-            <PlatformSelect value={platformId} onChange={id=>{setPlatformId(id);setCampaign("");setContent("");setTerm("");}}/>
-          </div>
-          <div style={{marginBottom:"0.75rem"}}>
-            <label className="label">Kampagnenavn</label>
-            <SanitizedInput value={campaign} onChange={setCampaign} placeholder="e.g. sommerkampagne_2025"/>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.75rem"}}>
-            <div><label className="label">Content</label><SanitizedInput value={content} onChange={setContent} placeholder="e.g. banner_v1"/></div>
-            <div><label className="label">Term</label><SanitizedInput value={term} onChange={setTerm} placeholder="e.g. keyword"/></div>
-          </div>
-        </div>
-      </div>
-
-      {hasOutput&&<>
-        <div className="card" style={{padding:"1rem"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"0.625rem",flexWrap:"wrap",gap:"0.5rem"}}>
-            <span style={{fontSize:"0.65rem",fontWeight:800,color:"#aaa",textTransform:"uppercase",letterSpacing:"0.08em"}}>Genereret URL</span>
-            <div style={{display:"flex",gap:"0.4rem"}}>
-              <button className="btn-outline" onClick={copyForSheet}>{copiedSheet?"✓ Klar til Sheets!":"📋 Kopiér til Sheets"}</button>
-              <button className="btn-orange" onClick={copyUrl} style={{background:copiedUrl?"#dcfce7":O,color:copiedUrl?"#16a34a":"white"}}>{copiedUrl?"✓ Kopieret!":"Kopiér URL"}</button>
-            </div>
-          </div>
-          <div className="url-box">{finalUrl}</div>
-          {copiedSheet&&<div className="sheets-note">Paste direkte i Google Sheets – kolonner: URL · utm_source · utm_medium · utm_campaign · utm_content · utm_term · Genereret URL</div>}
-        </div>
-        <div className="card" style={{overflow:"hidden",marginBottom:"0.75rem"}}>
-          <div style={{padding:"0.5rem 1rem",background:"#f5f4f2",borderBottom:"1px solid #f0ede9"}}>
-            <span style={{fontSize:"0.65rem",fontWeight:800,color:"#aaa",textTransform:"uppercase",letterSpacing:"0.08em"}}>Parametre</span>
-          </div>
-          {Object.entries(utmParams).map(([key,value])=>{
-            const isDynamic=value&&value.includes("{{");
-            const isExtra=platform?.extraParams&&key in platform.extraParams;
-            return(
-              <div key={key} className="param-row">
-                <span style={{fontFamily:"monospace",fontSize:"0.75rem",width:"9rem",flexShrink:0,color:isExtra?"#aaa":O}}>{key}</span>
-                <span style={{fontFamily:"monospace",fontSize:"0.75rem",color:isDynamic?"#f59e0b":"#1a1a1a"}}>{value}</span>
-                {isDynamic&&<span style={{marginLeft:"0.5rem",fontSize:"0.62rem",background:"#fffbeb",color:"#f59e0b",border:"1px solid #fde68a",padding:"0.1rem 0.35rem",borderRadius:"3px",fontWeight:700}}>auto</span>}
-              </div>
-            );
-          })}
-        </div>
-        <div className="card" style={{padding:"1rem"}}>
-          <div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:(platform.dynamicNote||platform.ga4Fix)?"0.625rem":0}}>
-            <span className="ga4-badge">GA4</span>
-            <span style={{fontSize:"0.875rem",color:"#1a1a1a",fontWeight:500}}>{platform.ga4Channel}</span>
-          </div>
-          {platform.dynamicNote&&<div className="warn-box"><span style={{color:"#f59e0b",flexShrink:0}}>⚡</span><p>{platform.dynamicNote}</p></div>}
-          {platform.ga4Fix&&<div className="info-box"><span style={{color:"#f97316",flexShrink:0}}>⚠</span><p>{platform.ga4Fix}</p></div>}
-        </div>
-      </>}
-      {!hasOutput&&<div className="card" style={{border:"1.5px dashed #e8e6e2"}}><div className="empty-state">Indtast en URL for at generere dit UTM-link</div></div>}
-    </div>
-  );
-}
-
-// ─── BATCH MODE ───────────────────────────────────────────────────────────────
-let batchId=1;
-function newBatchRow(pid="meta"){return{id:batchId++,platformId:pid,url:"",campaign:"",content:"",term:""};}
-
-function BatchMode({pendingRows,onPendingConsumed,onSaveAsTemplate}){
-  const [rows,setRows]=useState([newBatchRow("meta"),newBatchRow("linkedin"),newBatchRow("tiktok")]);
-  const [copiedAll,setCopiedAll]=useState(false);
-  const [downloaded,setDownloaded]=useState(false);
-
-  useEffect(()=>{
-    if(pendingRows&&pendingRows.length>0){
-      setRows(pendingRows.map(r=>({...r,id:batchId++})));
-      onPendingConsumed();
+    :root {
+      --yellow: #FCED01;
+      --yellow-dark: #d9cc00;
+      --yellow-glow: rgba(252,237,1,0.25);
+      --black: #111111;
+      --step: #0057FF;
+      --step-dark: #0046cc;
+      --step-glow: rgba(0,87,255,0.15);
+      --step-light: #EEF4FF;
+      --bt: #E8420A;
+      --bt-dark: #c23508;
+      --bt-glow: rgba(232,66,10,0.15);
+      --bt-light: #FFF1EC;
+      --gray-50: #fafafa;
+      --gray-100: #f4f4f5;
+      --gray-200: #e4e4e7;
+      --gray-300: #d1d1d6;
+      --gray-400: #a1a1aa;
+      --gray-500: #71717a;
+      --gray-700: #3f3f46;
+      --gray-900: #18181b;
+      --radius: 10px;
+      --radius-sm: 7px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-lg: 0 12px 40px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.05);
     }
-  },[pendingRows]);
 
-  const updRow=(id,f,v)=>setRows(prev=>prev.map(r=>r.id===id?{...r,[f]:v}:r));
-  const remRow=(id)=>setRows(prev=>prev.filter(r=>r.id!==id));
-  const addRow=()=>setRows(prev=>[...prev,newBatchRow("meta")]);
+    body {
+      font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+      background: #EBEBEB;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px 72px;
+    }
 
-  const builtRows=useMemo(()=>rows.map(r=>{
-    const p=PLATFORMS.find(x=>x.id===r.platformId);
-    return{...r,platform:p,finalUrl:buildUrl(r.url,p,r.campaign,r.content,r.term)};
-  }),[rows]);
+    .page-wrapper { width: 100%; max-width: 920px; }
 
-  const validRows=builtRows.filter(r=>r.url&&r.finalUrl);
+    /* ─── HEADER ─── */
+    .site-header {
+      background: var(--black);
+      border-radius: 14px 14px 0 0;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      position: relative;
+      overflow: hidden;
+    }
+    .site-header::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 5px;
+      background: var(--yellow);
+      transition: background 0.3s;
+    }
+    .site-header.is-step::before { background: var(--step); }
+    .site-header.is-bt::before   { background: var(--bt); }
 
-  const copyAllForSheets=()=>{
-    const dataRows=builtRows.map(r=>{
-      if(!r.url||!r.platform)return null;
-      return rowToTabStr(r.url,r.platform,r.campaign,r.content,r.term,r.finalUrl);
-    }).filter(Boolean);
-    navigator.clipboard.writeText(dataRows.join("\n")).then(()=>{setCopiedAll(true);setTimeout(()=>setCopiedAll(false),2500);});
-  };
+    .logo-area { display: flex; align-items: center; gap: 14px; }
+    .logo-mark {
+      width: 40px; height: 40px;
+      background: var(--yellow);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .site-header.is-step .logo-mark { background: var(--step); }
+    .site-header.is-bt   .logo-mark { background: var(--bt); }
+    .site-header.is-step .logo-mark svg,
+    .site-header.is-bt   .logo-mark svg { stroke: #fff; }
+    .logo-mark svg { width: 22px; height: 22px; }
 
-  const downloadCsv=()=>{
-    const header="Landing Page URL,utm_source,utm_medium,utm_campaign,utm_content,utm_term,Genereret URL";
-    const dataRows=builtRows.map(r=>{
-      if(!r.url||!r.platform)return null;
-      return[r.url,r.platform.source,r.platform.medium,sanitize(r.campaign),sanitize(r.content),sanitize(r.term),r.finalUrl]
-        .map(v=>`"${(v||"").replace(/"/g,'""')}"`).join(",");
-    }).filter(Boolean);
-    const csv=[header,...dataRows].join("\n");
-    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");a.href=url;a.download="utm-links.csv";
-    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-    setDownloaded(true);setTimeout(()=>setDownloaded(false),2000);
-  };
+    .logo-text { display: flex; flex-direction: column; gap: 1px; }
+    .logo-name { font-size: 17px; font-weight: 900; color: #fff; letter-spacing: 1.5px; text-transform: uppercase; line-height: 1; }
+    .logo-name span { color: var(--yellow); transition: color 0.3s; }
+    .site-header.is-step .logo-name span { color: #6aa0ff; }
+    .site-header.is-bt   .logo-name span { color: #ff9474; }
+    .logo-sub { font-size: 10px; color: var(--gray-400); letter-spacing: 0.5px; font-weight: 500; text-transform: uppercase; }
 
-  return(
-    <div>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"0.75rem",flexWrap:"wrap",gap:"0.5rem"}}>
-        <p style={{fontSize:"0.8rem",color:"#888"}}>{validRows.length} af {rows.length} links klar</p>
-        <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap"}}>
-          <button className="btn-ghost" onClick={()=>onSaveAsTemplate(rows)} disabled={validRows.length===0} style={{fontSize:"0.72rem"}}>💾 Gem som skabelon</button>
-          <button className="btn-outline" onClick={copyAllForSheets} disabled={validRows.length===0}>{copiedAll?"✓ Klar til Sheets!":"📋 Kopiér alle til Sheets"}</button>
-          <button className="btn-orange" onClick={downloadCsv} disabled={validRows.length===0}
-            style={{background:downloaded?"#dcfce7":O,color:downloaded?"#16a34a":"white"}}>
-            {downloaded?"✓ Downloadet!":"⬇ Download CSV"}
-          </button>
-        </div>
-      </div>
-      {copiedAll&&<div className="sheets-note" style={{marginBottom:"0.75rem"}}>Paste direkte i Google Sheets – kolonner: URL · utm_source · utm_medium · utm_campaign · utm_content · utm_term · Genereret URL</div>}
+    .header-tool-label {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 99px;
+      padding: 6px 14px;
+    }
+    .header-tool-label .dot {
+      width: 6px; height: 6px;
+      background: var(--yellow);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+      transition: background 0.3s;
+    }
+    .site-header.is-step .header-tool-label .dot { background: var(--step); }
+    .site-header.is-bt   .header-tool-label .dot { background: var(--bt); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    .header-tool-label span { font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 0.4px; text-transform: uppercase; }
 
-      <div className="card">
-        <div style={{overflowX:"auto"}}>
-          <table className="batch-table">
-            <thead>
-              <tr>
-                <th className="batch-th">Landing Page URL</th>
-                <th className="batch-th">Platform</th>
-                <th className="batch-th">Kampagnenavn</th>
-                <th className="batch-th">Content</th>
-                <th className="batch-th">Term</th>
-                <th className="batch-th" style={{width:"28px"}}></th>
-              </tr>
-            </thead>
-            <tbody>
-              {builtRows.map(row=>(
-                <React.Fragment key={row.id}>
-                  <tr className="batch-tr">
-                    <td className="batch-td"><input className="inp" type="text" value={row.url} onChange={e=>updRow(row.id,"url",e.target.value)} placeholder="https://..." style={{fontSize:"0.78rem",padding:"0.38rem 0.55rem"}}/></td>
-                    <td className="batch-td"><PlatformSelect value={row.platformId} onChange={v=>updRow(row.id,"platformId",v)} style={{fontSize:"0.75rem",padding:"0.38rem 0.55rem"}}/></td>
-                    <td className="batch-td"><input className={`inp${hasInvalidChars(row.campaign)?" warn":""}`} type="text" value={row.campaign} onChange={e=>updRow(row.id,"campaign",sanitize(e.target.value))} placeholder="sommerkampagne" style={{fontSize:"0.78rem",padding:"0.38rem 0.55rem"}}/></td>
-                    <td className="batch-td"><input className={`inp${hasInvalidChars(row.content)?" warn":""}`} type="text" value={row.content} onChange={e=>updRow(row.id,"content",sanitize(e.target.value))} placeholder="banner_v1" style={{fontSize:"0.78rem",padding:"0.38rem 0.55rem"}}/></td>
-                    <td className="batch-td"><input className={`inp${hasInvalidChars(row.term)?" warn":""}`} type="text" value={row.term} onChange={e=>updRow(row.id,"term",sanitize(e.target.value))} placeholder="keyword" style={{fontSize:"0.78rem",padding:"0.38rem 0.55rem"}}/></td>
-                    <td className="batch-td"><button className="remove-btn" onClick={()=>remRow(row.id)}>×</button></td>
-                  </tr>
-                  {row.url&&(
-                    <tr className="batch-tr">
-                      <td className="batch-td" colSpan={5} style={{paddingTop:"0.15rem",paddingBottom:"0.5rem"}}>
-                        <div style={{display:"flex",alignItems:"flex-start",gap:"0.5rem"}}>
-                          <span className={`url-preview${row.finalUrl?"":" empty"}`}>{row.finalUrl||"Udfyld platform og kampagnenavn..."}</span>
-                          {row.finalUrl&&<button className="btn-orange" onClick={()=>navigator.clipboard.writeText(row.finalUrl)} style={{fontSize:"0.65rem",padding:"0.2rem 0.5rem",flexShrink:0}}>Kopiér</button>}
-                        </div>
-                      </td>
-                      <td className="batch-td"/>
-                    </tr>
-                  )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <button className="add-row-btn" onClick={addRow}>+ Tilføj link</button>
-    </div>
-  );
-}
+    /* ─── CARD ─── */
+    .card { background: #fff; border-radius: 0 0 14px 14px; padding: 40px; box-shadow: var(--shadow-lg); }
 
-// ─── SAVE MODAL ───────────────────────────────────────────────────────────────
-function SaveModal({rows,onSave,onCancel}){
-  const [name,setName]=useState("");
-  const [desc,setDesc]=useState("");
-  return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
-      <div style={{background:"white",borderRadius:"16px",padding:"1.5rem",maxWidth:"440px",width:"100%",boxShadow:"0 20px 60px rgba(0,0,0,0.2)"}}>
-        <h3 style={{fontWeight:900,marginBottom:"0.25rem"}}>Gem som skabelon</h3>
-        <p style={{fontSize:"0.78rem",color:"#888",marginBottom:"1rem"}}>Gemmes i din browser – synlig næste gang du åbner UTM Builder.</p>
-        <div style={{marginBottom:"0.75rem"}}>
-          <label className="label">Navn *</label>
-          <input className="inp" type="text" value={name} onChange={e=>setName(e.target.value)} placeholder="f.eks. Harald Nyborg · Sommer 2025" autoFocus/>
-        </div>
-        <div style={{marginBottom:"1.25rem"}}>
-          <label className="label">Beskrivelse</label>
-          <input className="inp" type="text" value={desc} onChange={e=>setDesc(e.target.value)} placeholder="Valgfri beskrivelse"/>
-        </div>
-        <div style={{background:"#f5f4f2",borderRadius:"8px",padding:"0.6rem 0.875rem",marginBottom:"1.25rem",fontSize:"0.75rem",color:"#555"}}>
-          {rows.filter(r=>r.url||r.platformId).length} links gemmes i skabelonen
-        </div>
-        <div style={{display:"flex",gap:"0.5rem",justifyContent:"flex-end"}}>
-          <button className="btn-ghost" onClick={onCancel}>Annullér</button>
-          <button className="btn-orange" onClick={()=>name.trim()&&onSave(name,desc)} disabled={!name.trim()}>Gem skabelon</button>
-        </div>
-      </div>
-    </div>
-  );
-}
+    /* ─── SECTION TITLES ─── */
+    .section-title {
+      font-size: 10px; font-weight: 700; color: var(--gray-400);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-title::after { content: ''; flex: 1; height: 1px; background: var(--gray-200); }
 
-// ─── TEMPLATES MODE ───────────────────────────────────────────────────────────
-let tplRowId=1;
-function newTplRow(){return{id:tplRowId++,platformId:"meta",url:"",campaign:"",content:"",term:""};}
+    /* ─── TOGGLE GROUPS ─── */
+    .type-toggle-wrap { margin-bottom: 16px; }
 
-function TemplatesMode({personalTemplates,setPersonalTemplates,onLoadToBatch}){
-  const [showNew,setShowNew]=useState(false);
-  const [newName,setNewName]=useState("");
-  const [newDesc,setNewDesc]=useState("");
-  const [newRows,setNewRows]=useState([newTplRow()]);
-  const [toast,setToast]=useState(null);
-  const [confirmDelete,setConfirmDelete]=useState(null);
+    .toggle-groups {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
 
-  const showToast=(msg)=>{setToast(msg);setTimeout(()=>setToast(null),2500);};
-  const addTplRow=()=>setNewRows(r=>[...r,newTplRow()]);
-  const updTplRow=(id,f,v)=>setNewRows(r=>r.map(x=>x.id===id?{...x,[f]:v}:x));
-  const remTplRow=(id)=>setNewRows(r=>r.filter(x=>x.id!==id));
+    .toggle-group { display: flex; flex-direction: column; gap: 6px; }
 
-  const saveTemplate=()=>{
-    if(!newName.trim())return;
-    const tpl={id:"personal_"+Date.now(),name:newName,description:newDesc,builtin:false,rows:newRows.filter(r=>r.url||r.platformId)};
-    const updated=[...personalTemplates,tpl];
-    setPersonalTemplates(updated);savePersonalTemplates(updated);
-    setNewName("");setNewDesc("");setNewRows([newTplRow()]);setShowNew(false);
-    showToast(`✓ "${newName}" er gemt`);
-  };
+    .toggle-group-label {
+      font-size: 9.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--gray-400);
+      padding-left: 4px;
+    }
 
-  const deleteTemplate=(id)=>{
-    const updated=personalTemplates.filter(t=>t.id!==id);
-    setPersonalTemplates(updated);savePersonalTemplates(updated);
-    setConfirmDelete(null);showToast("Skabelon slettet");
-  };
+    .type-toggle {
+      display: flex;
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      padding: 5px;
+      gap: 4px;
+      border: 1.5px solid var(--gray-200);
+      width: fit-content;
+    }
 
-  const exportTemplates=()=>{
-    const blob=new Blob([JSON.stringify(personalTemplates,null,2)],{type:"application/json"});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement("a");a.href=url;a.download="utm-skabeloner.json";
-    document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
-  };
+    .type-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none;
+      background: transparent; color: var(--gray-400);
+      letter-spacing: 0.2px;
+      transition: all 0.2s ease;
+    }
+    .type-btn svg { transition: opacity 0.2s; opacity: 0.5; }
 
-  const importTemplates=(e)=>{
-    const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        const imported=JSON.parse(ev.target.result);
-        if(Array.isArray(imported)){
-          const merged=[...personalTemplates,...imported.filter(t=>!personalTemplates.find(p=>p.id===t.id))];
-          setPersonalTemplates(merged);savePersonalTemplates(merged);
-          showToast(`✓ ${imported.length} skabelon${imported.length!==1?"er":""} importeret`);
-        }
-      }catch{showToast("Fejl – tjek at filen er gyldig JSON");}
-    };
-    reader.readAsText(file);e.target.value="";
-  };
+    .type-btn.active        { background: #fff; color: var(--black); box-shadow: 0 1px 8px rgba(0,0,0,0.10), 0 1px 2px rgba(0,0,0,0.06); }
+    .type-btn.active svg    { opacity: 1; }
+    .type-btn.active-step   { background: var(--step-light); color: var(--step); box-shadow: 0 1px 8px rgba(0,87,255,0.12); }
+    .type-btn.active-step svg { opacity: 1; }
+    .type-btn.active-bt     { background: var(--bt-light); color: var(--bt); box-shadow: 0 1px 8px rgba(232,66,10,0.12); }
+    .type-btn.active-bt svg { opacity: 1; }
 
-  return(
-    <div>
-      {toast&&<div className="success-toast">{toast}</div>}
-      {confirmDelete&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
-          <div style={{background:"white",borderRadius:"12px",padding:"1.25rem",maxWidth:"380px",width:"100%"}}>
-            <p style={{fontWeight:700,marginBottom:"0.5rem"}}>Slet skabelon?</p>
-            <p style={{fontSize:"0.8rem",color:"#888",marginBottom:"1rem"}}>"{confirmDelete.name}" slettes permanent fra din browser.</p>
-            <div style={{display:"flex",gap:"0.5rem",justifyContent:"flex-end"}}>
-              <button className="btn-ghost" onClick={()=>setConfirmDelete(null)}>Annullér</button>
-              <button className="btn-danger" onClick={()=>deleteTemplate(confirmDelete.id)}>Slet</button>
-            </div>
-          </div>
-        </div>
-      )}
+    .type-chip {
+      font-size: 9.5px; font-weight: 800;
+      padding: 2px 8px; border-radius: 99px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+    }
+    .chip-newsletter { background: var(--yellow); color: var(--black); }
+    .chip-flow       { background: var(--black); color: var(--yellow); }
+    .chip-step       { background: var(--step); color: #fff; }
+    .chip-bt         { background: var(--bt); color: #fff; }
 
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"0.75rem",flexWrap:"wrap",gap:"0.5rem"}}>
-        <p style={{fontSize:"0.8rem",color:"#888"}}>{BUILTIN_TEMPLATES.length} fælles · {personalTemplates.length} personlige</p>
-        <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap"}}>
-          {personalTemplates.length>0&&<button className="btn-ghost" onClick={exportTemplates} style={{fontSize:"0.72rem"}}>⬇ Eksportér JSON</button>}
-          <label className="btn-ghost" style={{fontSize:"0.72rem",cursor:"pointer"}}>
-            ↑ Importér JSON
-            <input type="file" accept=".json" style={{display:"none"}} onChange={importTemplates}/>
-          </label>
-          <button className="btn-outline" onClick={()=>setShowNew(!showNew)}>{showNew?"✕ Annullér":"+ Ny skabelon"}</button>
-        </div>
-      </div>
+    /* ─── REAID TOGGLE ─── */
+    .reaid-toggle-wrap { margin-bottom: 28px; }
+    .reaid-toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--gray-50);
+      border: 1.5px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+      gap: 16px;
+    }
+    .reaid-toggle-row:hover { border-color: var(--gray-300); background: #fff; }
+    .reaid-toggle-row.active { border-color: var(--yellow-dark); background: #fffef5; }
+    .reaid-toggle-left { display: flex; align-items: center; gap: 10px; }
+    .reaid-icon {
+      width: 30px; height: 30px;
+      background: var(--gray-100); border: 1.5px solid var(--gray-200);
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.2s, border-color 0.2s;
+    }
+    .reaid-toggle-row.active .reaid-icon { background: var(--yellow); border-color: var(--yellow-dark); }
+    .reaid-toggle-row.active .reaid-icon svg { stroke: var(--black); }
+    .reaid-icon svg { stroke: var(--gray-400); transition: stroke 0.2s; }
+    .reaid-text-group { display: flex; flex-direction: column; gap: 2px; }
+    .reaid-title { font-size: 12px; font-weight: 700; color: var(--gray-700); }
+    .reaid-toggle-row.active .reaid-title { color: var(--gray-900); }
+    .reaid-desc { font-size: 11px; color: var(--gray-400); }
+    .reaid-desc code {
+      font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace;
+      font-size: 10.5px; background: var(--gray-100);
+      border: 1px solid var(--gray-200); border-radius: 4px;
+      padding: 1px 5px; color: var(--gray-700);
+    }
+    .reaid-toggle-row.active .reaid-desc code { background: #fff3b0; border-color: #e8df00; color: #5a5000; }
 
-      {showNew&&(
-        <div className="new-tpl-form">
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.75rem",marginBottom:"0.75rem"}}>
-            <div><label className="label">Navn *</label><input className="inp" type="text" value={newName} onChange={e=>setNewName(e.target.value)} placeholder="f.eks. Imerco · Display-mix"/></div>
-            <div><label className="label">Beskrivelse</label><input className="inp" type="text" value={newDesc} onChange={e=>setNewDesc(e.target.value)} placeholder="Valgfri"/></div>
-          </div>
-          <label className="label" style={{marginBottom:"0.5rem"}}>Links</label>
-          <div style={{background:"white",borderRadius:"8px",border:"1.5px solid #e8e6e2",overflow:"hidden",marginBottom:"0.5rem"}}>
-            <div style={{display:"grid",gridTemplateColumns:"2fr 1.2fr 1fr 1fr 1fr 28px",gap:"0.4rem",padding:"0.35rem 0.5rem",background:"#f0ede9",borderBottom:"1px solid #e8e6e2"}}>
-              {["URL","Platform","Kampagnenavn","Content","Term",""].map((l,i)=><span key={i} style={{fontSize:"0.58rem",fontWeight:800,color:"#aaa",textTransform:"uppercase",letterSpacing:"0.06em"}}>{l}</span>)}
-            </div>
-            {newRows.map((row,i)=>(
-              <div key={row.id} className="tpl-row-editor" style={{borderBottom:i<newRows.length-1?"1px solid #f5f4f2":"none"}}>
-                <input className="inp" type="text" value={row.url} onChange={e=>updTplRow(row.id,"url",e.target.value)} placeholder="https://..." style={{fontSize:"0.75rem",padding:"0.35rem 0.5rem"}}/>
-                <PlatformSelect value={row.platformId} onChange={v=>updTplRow(row.id,"platformId",v)} style={{fontSize:"0.72rem",padding:"0.35rem 0.5rem"}}/>
-                <input className="inp" type="text" value={row.campaign} onChange={e=>updTplRow(row.id,"campaign",sanitize(e.target.value))} placeholder="kampagne" style={{fontSize:"0.75rem",padding:"0.35rem 0.5rem"}}/>
-                <input className="inp" type="text" value={row.content} onChange={e=>updTplRow(row.id,"content",sanitize(e.target.value))} placeholder="content" style={{fontSize:"0.75rem",padding:"0.35rem 0.5rem"}}/>
-                <input className="inp" type="text" value={row.term} onChange={e=>updTplRow(row.id,"term",sanitize(e.target.value))} placeholder="term" style={{fontSize:"0.75rem",padding:"0.35rem 0.5rem"}}/>
-                <button className="remove-btn" onClick={()=>remTplRow(row.id)}>×</button>
-              </div>
-            ))}
-          </div>
-          <div style={{display:"flex",gap:"0.5rem"}}>
-            <button className="btn-ghost" onClick={addTplRow}>+ Tilføj række</button>
-            <button className="btn-orange" onClick={saveTemplate} disabled={!newName.trim()}>Gem skabelon</button>
-          </div>
-        </div>
-      )}
+    .ios-toggle { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+    .ios-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .ios-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: var(--gray-200); border-radius: 24px;
+      border: 1.5px solid var(--gray-300); transition: 0.2s;
+    }
+    .ios-slider::before {
+      content: ''; position: absolute;
+      width: 16px; height: 16px; left: 3px; top: 50%;
+      transform: translateY(-50%);
+      background: #fff; border-radius: 50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.18); transition: 0.2s;
+    }
+    .ios-toggle input:checked + .ios-slider { background: var(--black); border-color: var(--black); }
+    .ios-toggle input:checked + .ios-slider::before { transform: translateY(-50%) translateX(18px); background: var(--yellow); }
 
-      <div className="section-divider"><div className="section-divider-line"/><span className="section-divider-label">🏢 Fælles skabeloner</span><div className="section-divider-line"/></div>
-      {BUILTIN_TEMPLATES.map(tpl=>(
-        <div key={tpl.id} className="tpl-card builtin">
-          <div className="tpl-header">
-            <div>
-              <div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"2px"}}>
-                <div className="tpl-name">{tpl.name}</div>
-                <span className="badge-builtin">Fælles</span>
-              </div>
-              {tpl.description&&<div className="tpl-meta">{tpl.description}</div>}
-              <div style={{marginTop:"3px"}}><span className="badge-count">{tpl.rows.length} links</span></div>
-            </div>
-            <div className="tpl-actions">
-              <button style={{background:O,color:"white",border:"none",borderRadius:"6px",padding:"0.4rem 0.875rem",fontSize:"0.78rem",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>onLoadToBatch(tpl.rows)}>↗ Indlæs i Batch</button>
-            </div>
-          </div>
-          <div className="tpl-rows-preview">
-            {tpl.rows.map((r,i)=>{
-              const p=PLATFORMS.find(x=>x.id===r.platformId);
-              return(<span key={i} className="tpl-row-chip"><span style={{color:O,fontWeight:700}}>{p?.source||r.platformId}</span>{r.campaign&&<span>· {r.campaign}</span>}{r.content&&<span style={{color:"#aaa"}}>· {r.content}</span>}</span>);
-            })}
-          </div>
-        </div>
-      ))}
-
-      <div className="section-divider"><div className="section-divider-line"/><span className="section-divider-label">👤 Mine skabeloner (gemt i din browser)</span><div className="section-divider-line"/></div>
-      {personalTemplates.length===0&&(
-        <div className="card" style={{border:"1.5px dashed #e8e6e2"}}>
-          <div className="empty-state"><p>Ingen personlige skabeloner endnu.</p><p style={{fontSize:"0.75rem",marginTop:"0.35rem"}}>Brug "💾 Gem som skabelon" i Batch, eller opret én ovenfor.</p></div>
-        </div>
-      )}
-      {personalTemplates.map(tpl=>(
-        <div key={tpl.id} className="tpl-card personal">
-          <div className="tpl-header">
-            <div>
-              <div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"2px"}}>
-                <div className="tpl-name">{tpl.name}</div>
-                <span className="badge-personal">Min</span>
-              </div>
-              {tpl.description&&<div className="tpl-meta">{tpl.description}</div>}
-              <div style={{marginTop:"3px"}}><span className="badge-count">{tpl.rows.length} links</span></div>
-            </div>
-            <div className="tpl-actions">
-              <button style={{background:O,color:"white",border:"none",borderRadius:"6px",padding:"0.4rem 0.875rem",fontSize:"0.78rem",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}} onClick={()=>onLoadToBatch(tpl.rows)}>↗ Indlæs i Batch</button>
-              <button className="btn-danger" onClick={()=>setConfirmDelete(tpl)}>Slet</button>
-            </div>
-          </div>
-          <div className="tpl-rows-preview">
-            {tpl.rows.map((r,i)=>{
-              const p=PLATFORMS.find(x=>x.id===r.platformId);
-              return(<span key={i} className="tpl-row-chip"><span style={{color:"#22c55e",fontWeight:700}}>{p?.source||r.platformId}</span>{r.campaign&&<span>· {r.campaign}</span>}{r.content&&<span style={{color:"#aaa"}}>· {r.content}</span>}</span>);
-            })}
-          </div>
-        </div>
-      ))}
-
-      <div style={{background:"#f0f8ff",border:"1px solid #bde0fe",borderRadius:"8px",padding:"0.5rem 0.875rem",marginTop:"0.75rem"}}>
-        <p style={{fontSize:"0.72rem",color:"#1a5276",lineHeight:1.5}}>
-          <strong>Fælles skabeloner</strong> er tilgængelige for alle. <strong>Mine skabeloner</strong> gemmes kun i din browser – brug Eksportér/Importér JSON for at dele med kolleger.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-// ─── APP ──────────────────────────────────────────────────────────────────────
-function App(){
-  const [tab,setTab]=useState("single");
-  const [personalTemplates,setPersonalTemplates]=useState(()=>loadPersonalTemplates());
-  const [pendingRows,setPendingRows]=useState(null);
-  const [saveModalRows,setSaveModalRows]=useState(null);
-
-  const handleLoadToBatch=(rows)=>{setPendingRows(rows);setTab("batch");};
-  const handleSaveAsTemplate=(rows)=>{setSaveModalRows(rows);};
-  const handleModalSave=(name,desc)=>{
-    const tpl={id:"personal_"+Date.now(),name,description:desc,builtin:false,rows:saveModalRows.filter(r=>r.url||r.platformId).map(({id,...rest})=>rest)};
-    const updated=[...personalTemplates,tpl];
-    setPersonalTemplates(updated);savePersonalTemplates(updated);
-    setSaveModalRows(null);
-  };
-
-  return(
-    <div style={{minHeight:"100vh",background:"#f5f4f2"}}>
-      {saveModalRows&&<SaveModal rows={saveModalRows} onSave={handleModalSave} onCancel={()=>setSaveModalRows(null)}/>}
-      <div style={{maxWidth:"900px",margin:"0 auto",padding:"2rem 1rem 3rem"}}>
-        <div style={{marginBottom:"1.5rem"}}>
-          <h1 style={{fontSize:"1.5rem",fontWeight:900,color:"#1a1a1a",letterSpacing:"-0.03em"}}>UTM Builder</h1>
-          <p style={{fontSize:"0.875rem",color:"#888",marginTop:"0.35rem"}}>Korrekte UTM-parametre til GA4-attribuering</p>
-          <div style={{height:"3px",width:"40px",background:O,borderRadius:"2px",marginTop:"0.75rem"}}/>
-        </div>
-
-        <div className="card" style={{padding:0,marginBottom:"1rem"}}>
-          <div style={{display:"flex",borderBottom:"1.5px solid #f0ede9",padding:"0 1.25rem"}}>
-            <button className={`tab-btn ${tab==="single"?"active":"inactive"}`} onClick={()=>setTab("single")}>🔗 Ét link</button>
-            <button className={`tab-btn ${tab==="batch"?"active":"inactive"}`} onClick={()=>setTab("batch")}>📊 Batch</button>
-            <button className={`tab-btn ${tab==="templates"?"active":"inactive"}`} onClick={()=>setTab("templates")}>
-              📁 Skabeloner
-              <span style={{marginLeft:"0.4rem",fontSize:"0.62rem",fontWeight:700,background:"#E8501B22",color:O,padding:"0.1rem 0.35rem",borderRadius:"3px"}}>
-                {BUILTIN_TEMPLATES.length+personalTemplates.length}
-              </span>
-            </button>
-          </div>
-          <div style={{padding:"0.65rem 1.25rem",background:"#fafaf9"}}>
-            {tab==="single"&&<p style={{fontSize:"0.78rem",color:"#666"}}>Generer ét UTM-link – kopier URL'en direkte eller som række til Sheets/Excel.</p>}
-            {tab==="batch"&&<p style={{fontSize:"0.78rem",color:"#666"}}>Byg en hel kampagne på tværs af platforme. Download som CSV eller kopier til Sheets/Excel.</p>}
-            {tab==="templates"&&<p style={{fontSize:"0.78rem",color:"#666"}}>Fælles kampagneskabeloner + dine personlige (gemt i denne browser).</p>}
-          </div>
-        </div>
-
-        {tab==="single"&&<SingleMode/>}
-        {tab==="batch"&&<BatchMode pendingRows={pendingRows} onPendingConsumed={()=>setPendingRows(null)} onSaveAsTemplate={handleSaveAsTemplate}/>}
-        {tab==="templates"&&<TemplatesMode personalTemplates={personalTemplates} setPersonalTemplates={setPersonalTemplates} onLoadToBatch={handleLoadToBatch}/>}
-
-        <div style={{background:"#f0f8ff",border:"1px solid #bde0fe",borderRadius:"8px",padding:"0.5rem 0.875rem",marginTop:"0.75rem"}}>
-          <p style={{fontSize:"0.72rem",color:"#1a5276",lineHeight:1.5}}><strong>URL-sanitering:</strong> æ→ae · ø→oe · å→aa · mellemrum→_ · ugyldige tegn fjernes automatisk.</p>
-        </div>
-        <div className="footer"><span>calibrate</span> · part of iO</div>
-      </div>
-    </div>
-  );
-}
-ReactDOM.render(<App/>, document.getElementById("root"));
-</script>
-</body>
-</html>
+    /* ─── FORM ─── */
+    .form-grid { display: grid; grid-template
